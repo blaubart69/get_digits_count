@@ -153,11 +153,8 @@ typedef struct {
     char*               name;
 } FUNC;
 
-void run_from_to(fn_count_digits fn_digit_function, const uint64_t from, const uint64_t to, const char* name)
+void run_from_to(const uint64_t from, const uint64_t to, fn_count_digits fn_digit_function, const char* name)
 {
-    printf("running from %20lu\n"
-           "          to %20lu\n", from, to);
-
     uint64_t digit_count = 0;
     clock_t start_time = clock();
     uint64_t v=from;
@@ -174,11 +171,6 @@ void run_from_to(fn_count_digits fn_digit_function, const uint64_t from, const u
 
 void run_times(fn_count_digits fn_digit_function, const uint64_t val, const uint64_t times, const char* name)
 {
-    char str_val[21];
-    sprintf(str_val, "%lu", val);
-
-    printf("running %lu times with %ld digits (%lu)\n", times, strlen(str_val), val);
-
     uint64_t digit_count = 0;
     clock_t start_time = clock();
     for (uint64_t i=0; i<times;++i)
@@ -188,6 +180,39 @@ void run_times(fn_count_digits fn_digit_function, const uint64_t val, const uint
 
     double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
     printf("%15f seconds\t(%10lu)\t%s\n", elapsed_time, digit_count, name);   
+}
+
+void do_times(uint64_t val, uint64_t times, const FUNC* funcs)
+{
+    char str_val[21];
+    sprintf(str_val, "%lu", val);
+
+    printf("running %lu times with %ld digits (%lu)\n", times, strlen(str_val), val);
+    for (int i=0; ;++i)
+    {
+        const FUNC* func_to_benchmark = &funcs[i];
+        if ( func_to_benchmark->func == NULL )
+        {
+            break;
+        }
+        run_times(func_to_benchmark->func, val, times, func_to_benchmark->name);
+    }
+}
+
+void do_from_to(uint64_t from, uint64_t to, const FUNC* funcs)
+{
+    printf("running from %20lu\n"
+           "          to %20lu\n", from, to);
+
+    for (int i=0; ;++i)
+    {
+        const FUNC* func_to_benchmark = &funcs[i];
+        if ( func_to_benchmark->func == NULL )
+        {
+            break;
+        }
+        run_from_to( from, to, func_to_benchmark->func, func_to_benchmark->name);
+    }
 }
 
 int main()
@@ -203,23 +228,15 @@ int main()
     //const uint64_t to   = 1000000000;
     //const uint64_t from = 1000000000;
     //const uint64_t to   = 1000000000 + 5000000000;
-    const uint64_t range = 500000000;
+    const uint64_t range = 100000;
     //const uint64_t to   = UINT64_MAX;
     //const uint64_t from = to - range;
     
     const uint64_t from = 0;
     const uint64_t to   = from + range;
 
-
-    for (int i=0; ;++i)
-    {
-        FUNC* func_to_benchmark = &funcs[i];
-        if ( func_to_benchmark->func == NULL )
-        {
-            break;
-        }
-        //run_from_to(func_to_benchmark->func, from, to, func_to_benchmark->name);
-        run_times(func_to_benchmark->func, 9999, range, func_to_benchmark->name);
-    }
+    //do_times(99, range, funcs);
+    do_from_to(from, to, funcs);
+   
     return 0;
 }

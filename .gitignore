@@ -1,3 +1,3 @@
 a.out
 build/**
-log10int.s
+*.s
